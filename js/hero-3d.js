@@ -3,7 +3,7 @@
  * The static <img> stays in the DOM as poster/fallback and LCP element.
  * The canvas is only created after load + idle, and removed on any failure.
  */
-const THREE_URL = 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+const THREE_URL = 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js';
 
 const host = document.querySelector('.hero-visual');
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -12,7 +12,11 @@ const conn = navigator.connection;
 function hasWebGL() {
   try {
     const c = document.createElement('canvas');
-    return !!(c.getContext('webgl2') || c.getContext('webgl'));
+    const gl = c.getContext('webgl2') || c.getContext('webgl');
+    if (!gl) return false;
+    // Release the probe context right away
+    gl.getExtension('WEBGL_lose_context')?.loseContext();
+    return true;
   } catch (e) {
     return false;
   }
@@ -30,22 +34,43 @@ function whenIdle() {
 }
 
 async function start() {
-  if (!host || reduceMotion.matches || (conn && conn.saveData) || !hasWebGL()) return;
+  if (!host || reduceMotion.matches || (conn && conn.saveData)) return;
   await whenIdle();
-  if (reduceMotion.matches) return;
+  if (reduceMotion.matches || !hasWebGL()) return;
 
-  let teardown = null;
   try {
     const THREE = await import(THREE_URL);
-    teardown = build(THREE);
+    // Preferences may have changed while the module downloaded
+    if (reduceMotion.matches || (conn && conn.saveData)) return;
+    build(THREE);
   } catch (err) {
-    if (teardown) teardown();
     host.classList.remove('is-3d');
     console.warn('[hero-3d] falling back to static image', err);
   }
 }
 
+// Owns the teardown stack so a throw mid-setup still releases everything acquired so far.
 function build(THREE) {
+  const undo = [];
+  let disposed = false;
+  const cleanup = () => {
+    if (disposed) return;
+    disposed = true;
+    host.classList.remove('is-3d');
+    while (undo.length) {
+      try { undo.pop()(); } catch (e) { /* keep tearing down */ }
+    }
+  };
+  try {
+    setup(THREE, undo, () => disposed, cleanup);
+  } catch (err) {
+    cleanup();
+    throw err;
+  }
+  return cleanup;
+}
+
+function setup(THREE, undo, isDisposed, cleanup) {
   const css = getComputedStyle(document.documentElement);
   const token = (name) => new THREE.Color(css.getPropertyValue(name).trim());
   const cyan = token('--brand-cyan');
@@ -56,16 +81,22 @@ function build(THREE) {
   canvas.setAttribute('aria-hidden', 'true');
   canvas.className = 'hero-canvas';
   host.appendChild(canvas);
+  undo.push(() => canvas.remove());
+
+  const disposables = [];
+  const track = (o) => (disposables.push(o), o);
 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'low-power' });
   renderer.setClearColor(0x000000, 0);
+  undo.push(() => {
+    disposables.forEach((d) => d.dispose && d.dispose());
+    renderer.dispose();
+    renderer.forceContextLoss();
+  });
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(34, 4 / 3, 0.1, 50);
   camera.position.set(0, 0.1, 9.5);
-
-  const disposables = [];
-  const track = (o) => (disposables.push(o), o);
 
   // ---- Lights ----
   scene.add(new THREE.HemisphereLight(0x6f8cff, 0x1a1040, 0.55));
@@ -293,6 +324,7 @@ function build(THREE) {
   };
   const ro = new ResizeObserver(resize);
   ro.observe(host);
+  undo.push(() => ro.disconnect());
   resize();
 
   // ---- Pointer parallax (desktop, damped) ----
@@ -303,7 +335,10 @@ function build(THREE) {
     target.x = (e.clientX / window.innerWidth - 0.5) * 2;
     target.y = (e.clientY / window.innerHeight - 0.5) * 2;
   };
-  if (finePointer) window.addEventListener('pointermove', onPointer, { passive: true });
+  if (finePointer) {
+    window.addEventListener('pointermove', onPointer, { passive: true });
+    undo.push(() => window.removeEventListener('pointermove', onPointer));
+  }
 
   // ---- Loop control ----
   let raf = 0;
@@ -313,8 +348,8 @@ function build(THREE) {
   const p = new THREE.Vector3();
 
   const frame = (now) => {
-    raf = requestAnimationFrame(frame);
-    const dt = Math.min((now - last) / 1000, 0.05);
+    if (isDisposed()) return;
+    const dt = Math.min(Math.max((now - last) / 1000, 0), 0.05);
     last = now;
     time += dt;
 
@@ -331,7 +366,7 @@ function build(THREE) {
     nodes.forEach((n, i) => n.scale.setScalar(0.7 + Math.sin(time * 2 + i) * 0.08));
     hexes.forEach((h, i) => {
       h.rotation.z += dt * 0.15 * (i % 2 ? -1 : 1);
-      h.position.y += Math.sin(time + i * 2) * 0.0015;
+      h.position.y += Math.sin(time + i * 2) * 0.09 * dt; // 0.0015/frame at 60 Hz
     });
     points.rotation.z = time * 0.02;
 
@@ -345,11 +380,17 @@ function build(THREE) {
       el.trail.forEach((s, k) => place(s, a0 - dir * (k + 1) * 0.075));
     });
 
-    renderer.render(scene, camera);
+    try {
+      renderer.render(scene, camera);
+    } catch (err) {
+      console.warn('[hero-3d] render failed, falling back to static image', err);
+      cleanup();
+      return;
+    }
+    raf = requestAnimationFrame(frame);
   };
 
-  const shouldRun = () => onScreen && !document.hidden && !lost;
-  let lost = false;
+  const shouldRun = () => onScreen && !document.hidden && !isDisposed();
   const sync = () => {
     if (shouldRun() && !raf) {
       last = performance.now();
@@ -360,31 +401,24 @@ function build(THREE) {
     }
   };
 
+  undo.push(() => {
+    if (raf) cancelAnimationFrame(raf);
+    raf = 0;
+  });
   const io = new IntersectionObserver((entries) => {
     onScreen = entries[0].isIntersecting;
     sync();
   });
   io.observe(host);
+  undo.push(() => io.disconnect());
   document.addEventListener('visibilitychange', sync);
+  undo.push(() => document.removeEventListener('visibilitychange', sync));
 
   const onReduce = () => reduceMotion.matches && cleanup();
   reduceMotion.addEventListener('change', onReduce);
+  undo.push(() => reduceMotion.removeEventListener('change', onReduce));
 
-  // ---- Teardown / context loss ----
-  function cleanup() {
-    lost = true;
-    if (raf) cancelAnimationFrame(raf);
-    raf = 0;
-    io.disconnect();
-    ro.disconnect();
-    document.removeEventListener('visibilitychange', sync);
-    window.removeEventListener('pointermove', onPointer);
-    reduceMotion.removeEventListener('change', onReduce);
-    host.classList.remove('is-3d');
-    disposables.forEach((d) => d.dispose && d.dispose());
-    renderer.dispose();
-    canvas.remove();
-  }
+  // ---- Context loss ----
   canvas.addEventListener('webglcontextlost', (e) => {
     e.preventDefault();
     cleanup();
@@ -393,10 +427,11 @@ function build(THREE) {
   // First frame, then reveal (poster fades out once the canvas is visible)
   last = performance.now();
   frame(last);
+  if (isDisposed()) return;
   sync();
-  requestAnimationFrame(() => host.classList.add('is-3d'));
-
-  return cleanup;
+  requestAnimationFrame(() => {
+    if (!isDisposed()) host.classList.add('is-3d');
+  });
 }
 
 start();
