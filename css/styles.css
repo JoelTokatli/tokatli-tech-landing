@@ -70,6 +70,27 @@
   --dur-fast: 150ms;
   --dur-base: 250ms;
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* 3D / depth (js/tilt.js reads --tilt-max and --magnet-max) */
+  --tilt-max: 8deg;
+  --tilt-persp: 1000px;
+  --tilt-lift: 14px;
+  --tilt-glare-mix: 18%;
+  --depth-icon: 36px;
+  --depth-title: 28px;
+  --depth-text: 16px;
+  --depth-media: 6px;
+  --depth-glare: 10px;
+  --parallax-media: 9px;
+  --media-scale: 0.06;
+  --magnet-max: 5px;
+  --dur-reveal: 520ms;
+  --reveal-stagger: 60ms;
+  --reveal-rx: 8deg;
+  --reveal-y: 24px;
+  --reveal-persp: 900px;
+  --btn-bevel: inset 0 1px 0 color-mix(in srgb, var(--color-text) 28%, transparent), inset 0 -3px 0 rgba(0, 0, 0, 0.18);
 
   --container: 1200px;
   --gutter: var(--space-4);
@@ -184,9 +205,9 @@ h3 { font-size: var(--fs-lg); font-weight: 600; }
   transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-base) var(--ease), background-color var(--dur-fast) var(--ease);
 }
 .btn-lg { min-height: 52px; padding-inline: var(--space-8); }
-.btn-primary { background: var(--gradient-action); color: var(--color-on-action); box-shadow: var(--shadow-glow); }
-.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0, 229, 255, 0.35); }
-.btn-primary:active { transform: translateY(0); }
+.btn-primary { background: var(--gradient-action); color: var(--color-on-action); box-shadow: var(--shadow-glow), var(--btn-bevel); }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0, 229, 255, 0.35), var(--btn-bevel); }
+.btn-primary:active { transform: translateY(1px) scale(0.98); box-shadow: var(--shadow-1), inset 0 2px 5px rgba(0, 0, 0, 0.3); }
 .btn-secondary { background: transparent; color: var(--color-text); border-color: var(--color-border); }
 .btn-secondary:hover { background: var(--color-surface-2); }
 
@@ -245,6 +266,7 @@ h3 { font-size: var(--fs-lg); font-weight: 600; }
 .nav-menu.is-open { display: flex; }
 .nav-links { display: flex; flex-direction: column; }
 .nav-links a {
+  position: relative;
   display: flex;
   align-items: center;
   min-height: 44px;
@@ -253,6 +275,20 @@ h3 { font-size: var(--fs-lg); font-weight: 600; }
   cursor: pointer;
 }
 .nav-links a:hover { color: var(--color-accent); }
+.nav-links a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 8px;
+  height: 2px;
+  border-radius: var(--radius-full);
+  background: var(--gradient-brand);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--dur-base) var(--ease-out);
+}
+.nav-links a:hover::after, .nav-links a:focus-visible::after { transform: scaleX(1); }
 
 /* Hero ------------------------------------------------------------------- */
 .hero { position: relative; isolation: isolate; overflow: hidden; padding-block: var(--space-16) var(--section-y); }
@@ -338,22 +374,22 @@ h3 { font-size: var(--fs-lg); font-weight: 600; }
 .card:hover { transform: translateY(-4px); border-color: var(--color-accent); }
 .card p { color: var(--color-text-muted); }
 .post .text-link { margin-top: auto; }
-/* Full-bleed illustration at the top of a post card; card padding is cancelled with negative margins */
-.post { overflow: hidden; }
-.post-media {
+/* Full-bleed illustration at the top of a post card; card padding is cancelled with negative margins.
+   The wrapper (not the card) clips the image, so the card can keep preserve-3d for the depth effect. */
+.post { --media-ratio: 4 / 3; }
+.post-visual {
   align-self: stretch;
   width: calc(100% + 2 * var(--space-6));
-  max-width: none;
-  height: auto;
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
-  object-position: 50% 45%;
   margin: calc(-1 * var(--space-6)) calc(-1 * var(--space-6)) var(--space-2);
+  aspect-ratio: var(--media-ratio);
+  overflow: hidden;
+  border-radius: calc(var(--radius-lg) - 1px) calc(var(--radius-lg) - 1px) 0 0;
   -webkit-mask-image: linear-gradient(180deg, black 72%, transparent);
   mask-image: linear-gradient(180deg, black 72%, transparent);
 }
+.post-media { display: block; width: 100%; max-width: none; height: 100%; object-fit: cover; object-position: 50% 45%; }
 
-@media (min-width: 560px) and (max-width: 1023px) { .post-media { aspect-ratio: 3 / 2; object-position: 50% 45%; } }
+@media (min-width: 560px) and (max-width: 1023px) { .post { --media-ratio: 3 / 2; } }
 
 /* Manifesto -------------------------------------------------------------- */
 .manifesto { display: grid; gap: var(--space-12); grid-template-columns: 1fr; align-items: center; }
@@ -431,9 +467,103 @@ h3 { font-size: var(--fs-lg); font-weight: 600; }
 .social a:hover { color: var(--color-accent); border-color: var(--color-accent); transform: translateY(-2px); }
 .copyright { padding-block: var(--space-8); color: var(--color-text-muted); font-size: var(--fs-sm); }
 
-/* Scroll reveal (transform/opacity only) --------------------------------- */
-.js .reveal { opacity: 0; transform: translateY(16px); transition: opacity var(--dur-base) var(--ease), transform var(--dur-base) var(--ease); }
-.js .reveal.is-visible { opacity: 1; transform: none; }
+/* Scroll reveal: 3D tilt-up entrance (transform/opacity only). Without JS the content is simply visible. */
+.js .reveal {
+  opacity: 0;
+  transform: perspective(var(--reveal-persp)) translate3d(0, var(--reveal-y), 0) rotateX(var(--reveal-rx));
+  transform-origin: 50% 100%;
+  transition:
+    opacity var(--dur-reveal) var(--ease-out) calc(var(--reveal-i, 0) * var(--reveal-stagger)),
+    transform var(--dur-reveal) var(--ease-out) calc(var(--reveal-i, 0) * var(--reveal-stagger));
+}
+.js .reveal.is-visible { opacity: 1; transform: perspective(var(--reveal-persp)) translate3d(0, 0, 0) rotateX(0deg); }
+/* Once revealed the transform is dropped, so resting content has no 3D layer */
+.js .reveal.is-done {
+  transform: none;
+  transition: transform var(--dur-fast) var(--ease), border-color var(--dur-base) var(--ease);
+}
+
+/* 3D tilt cards (js/tilt.js) --------------------------------------------- */
+[data-tilt] { position: relative; transform-style: preserve-3d; }
+html.js [data-tilt].is-tilting {
+  transform:
+    perspective(var(--tilt-persp))
+    translateZ(calc(var(--lift, 0) * var(--tilt-lift)))
+    rotateX(var(--rx, 0deg))
+    rotateY(var(--ry, 0deg));
+  transform-origin: 50% 50%;
+  transition: none;
+}
+.tilt-shadow, .tilt-glare { position: absolute; pointer-events: none; }
+.tilt-shadow {
+  inset: 12px 8px -8px;
+  border-radius: inherit;
+  background: rgba(0, 0, 0, 0.55);
+  filter: blur(20px);
+  opacity: calc(var(--lift, 0) * 0.8);
+  transform: translate3d(calc(var(--sx, 0) * 1px), calc(var(--sy, 0) * 1px + var(--lift, 0) * 10px), calc(var(--lift, 0) * -1 * var(--tilt-lift) - 1px));
+}
+.tilt-glare {
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  opacity: var(--lift, 0);
+  transform: translateZ(calc(var(--lift, 0) * var(--depth-glare)));
+}
+.tilt-glare::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 150%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  transform: translate3d(calc(var(--gx, 0) * 1px), calc(var(--gy, 0) * 1px), 0);
+  background: radial-gradient(circle closest-side, color-mix(in srgb, var(--color-text) var(--tilt-glare-mix), transparent), transparent);
+}
+
+/* Depth layers: content floats above the card plane while it is lifted/focused */
+[data-tilt] > .icon-badge, [data-tilt] > h3, [data-tilt] > p, [data-tilt] > .text-link, [data-tilt] > .post-visual { transition: transform var(--dur-base) var(--ease); }
+[data-tilt].is-tilting > * { transition: none; }
+[data-tilt].is-tilting > .icon-badge, [data-tilt]:has(:focus-visible) > .icon-badge { transform: translateZ(calc(var(--lift, 0) * var(--depth-icon))); }
+[data-tilt].is-tilting > h3, [data-tilt]:has(:focus-visible) > h3 { transform: translateZ(calc(var(--lift, 0) * var(--depth-title))); }
+[data-tilt].is-tilting > p, [data-tilt].is-tilting > .text-link,
+[data-tilt]:has(:focus-visible) > p, [data-tilt]:has(:focus-visible) > .text-link { transform: translateZ(calc(var(--lift, 0) * var(--depth-text))); }
+[data-tilt].is-tilting > .post-visual, [data-tilt]:has(:focus-visible) > .post-visual { transform: translateZ(calc(var(--lift, 0) * var(--depth-media))); }
+/* Keyboard users get the pop (no tilt) */
+html.js [data-tilt]:has(:focus-visible):not(.is-tilting) { --lift: 1; }
+html.js [data-tilt].is-done:has(:focus-visible):not(.is-tilting) { transform: perspective(var(--tilt-persp)); }
+
+.post-media {
+  transform:
+    translate3d(calc(var(--px, 0) * -1 * var(--parallax-media)), calc(var(--py, 0) * -1 * var(--parallax-media)), 0)
+    scale(calc(1 + var(--lift, 0) * var(--media-scale)));
+}
+/* Cyan/violet glow behind the illustration */
+.post::before {
+  content: "";
+  position: absolute;
+  inset: -8px -8px auto;
+  aspect-ratio: var(--media-ratio);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--brand-cyan) 60%, transparent), color-mix(in srgb, var(--brand-purple) 60%, transparent));
+  filter: blur(26px);
+  opacity: calc(0.2 + var(--lift, 0) * 0.55);
+  pointer-events: none;
+  transform: translate3d(calc(var(--px, 0) * 12px), calc(var(--py, 0) * 12px), 2px);
+}
+
+/* Magnetic buttons: individual `translate` property, so hover/active transforms keep working */
+[data-magnet] { translate: var(--bx, 0) var(--by, 0); }
+
+/* Input depth on focus (the global focus ring stays) */
+.signup input { transition: border-color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease), box-shadow var(--dur-base) var(--ease); }
+.signup input:focus-visible { border-color: var(--color-accent); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35), 0 0 0 4px color-mix(in srgb, var(--brand-cyan) 18%, transparent); transform: translateY(-1px); }
+
+/* Touch: no pointer tilt, just a gentle press-in */
+@media (hover: none), (pointer: coarse) {
+  html.js .reveal.is-done[data-tilt]:active { transform: perspective(var(--tilt-persp)) scale(0.985); }
+}
 
 /* >= 768px ---------------------------------------------------------------- */
 @media (min-width: 768px) {
@@ -472,6 +602,10 @@ h3 { font-size: var(--fs-lg); font-weight: 600; }
   html { scroll-behavior: auto; }
   .hero-visual img { animation: none; }
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
-  .js .reveal { opacity: 1; transform: none; }
-  .btn-primary:hover, .card:hover, .social a:hover { transform: none; }
+  .js .reveal { opacity: 1; transform: none; transition: none; }
+  .btn-primary:hover, .btn-primary:active, .card:hover, .social a:hover, .signup input:focus-visible { transform: none; }
+  html.js .reveal.is-done[data-tilt]:active, html.js [data-tilt]:has(:focus-visible) { transform: none; }
+  .tilt-shadow, .tilt-glare { display: none; }
+  [data-magnet] { translate: none; }
+  [data-parallax] { translate: none !important; }
 }

@@ -33,21 +33,48 @@
 
   // Scroll reveal ----------------------------------------------------------
   var items = document.querySelectorAll('.reveal');
-  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var mqReduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var io = null;
 
-  if (!('IntersectionObserver' in window) || reduce) {
-    items.forEach(function (el) { el.classList.add('is-visible'); });
+  // Instant: no transition, element is final (reduced motion / no IO support).
+  function revealNow(el) { el.classList.add('is-visible', 'is-done'); }
+
+  // Animated: 3D tilt-up entrance; `is-done` drops the transform when it ends.
+  function reveal(el, index) {
+    var timer;
+    function finish() {
+      clearTimeout(timer);
+      el.removeEventListener('transitionend', onEnd);
+      el.classList.add('is-done');
+    }
+    function onEnd(e) { if (e.target === el && e.propertyName === 'transform') finish(); }
+    el.style.setProperty('--reveal-i', index);
+    el.classList.add('is-visible');
+    el.addEventListener('transitionend', onEnd);
+    timer = setTimeout(finish, 1500);
+  }
+
+  if (!('IntersectionObserver' in window) || mqReduce.matches) {
+    items.forEach(revealNow);
   } else {
-    var io = new IntersectionObserver(function (entries) {
+    io = new IntersectionObserver(function (entries) {
+      var n = 0; // stagger index within this batch
       entries.forEach(function (entry) {
         if (entry.isIntersecting) {
-          entry.target.classList.add('is-visible');
+          reveal(entry.target, Math.min(n++, 6));
           io.unobserve(entry.target);
         }
       });
     }, { threshold: 0.12 });
     items.forEach(function (el) { io.observe(el); });
   }
+
+  // Live change to reduced motion: show everything immediately.
+  mqReduce.addEventListener('change', function (e) {
+    if (!e.matches) return;
+    if (io) io.disconnect();
+    items.forEach(revealNow);
+  });
 
   // Newsletter form --------------------------------------------------------
   var form = document.getElementById('signup-form');

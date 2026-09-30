@@ -8,6 +8,7 @@ Static landing page for the "tokatli tech" brand. Plain HTML, CSS and JS. No bui
 index.html
 css/styles.css
 js/main.js
+js/tilt.js
 favicon.svg
 assets/  logo-isotype.svg, logo-horizontal.svg, og-image.svg
 ```
@@ -36,6 +37,19 @@ The form has no backend. Set your provider endpoint in `index.html`:
 ## 3D hero
 
 `js/hero-3d.js` (ES module) renders the brand "T" with orbiting electrons using Three.js `0.160.0`, lazy-loaded from jsDelivr (`https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js`) only after `load` + idle. The static hero `<img>` remains the poster/LCP element and the fallback: no canvas is created with `prefers-reduced-motion`, `saveData`, or no WebGL, and the canvas is removed on errors or WebGL context loss. Rendering pauses when the hero is off-screen or the tab is hidden. Colors are read from the CSS custom properties in `:root`.
+
+## Interactive 3D effects
+
+Vanilla CSS 3D transforms plus `js/tilt.js` (no libraries). Everything is opt-in via data attributes in `index.html`:
+
+- `data-tilt` (optionally `data-tilt-max="2.5"` in degrees): pointer tilt with perspective, moving glare and soft shadow. Cards also get depth layers (illustration parallax, cyan/violet glow, floating icon/title/text).
+- `data-magnet`: subtle magnetic pull on primary buttons.
+- `data-parallax="0.06"`: scroll-linked `translate` on the hero copy and glows.
+- `.reveal`: 3D tilt-up entrance on scroll, staggered by 60ms, once per element (`js/main.js`).
+
+Tuning tokens live in `:root` (`--tilt-max`, `--tilt-persp`, `--tilt-lift`, `--depth-*`, `--dur-reveal`, `--reveal-*`).
+
+Only `transform`/`opacity` are animated, through one shared `requestAnimationFrame` loop. Tilt is disabled on touch (`hover: none`, replaced by a press-in on `:active`) and with `prefers-reduced-motion: reduce` (content is simply visible), including live changes. Keyboard focus on a card gives the depth "pop" without tilt. Without JS all content is visible.
 
 ## Notes
 

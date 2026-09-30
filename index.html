@@ -69,7 +69,7 @@
           <li><a href="#contenido">Contenido</a></li>
           <li><a href="#manifiesto">Manifiesto</a></li>
         </ul>
-        <a class="btn btn-primary" href="#newsletter">Suscribirme</a>
+        <a class="btn btn-primary" data-magnet href="#newsletter">Suscribirme</a>
       </nav>
     </div>
   </header>
@@ -77,17 +77,17 @@
   <main id="main">
     <section class="hero" aria-labelledby="hero-title">
       <div class="hero-bg" aria-hidden="true">
-        <span class="glow glow-blue"></span>
-        <span class="glow glow-purple"></span>
+        <span class="glow glow-blue" data-parallax="0.18"></span>
+        <span class="glow glow-purple" data-parallax="0.12"></span>
         <span class="grid-lines"></span>
       </div>
       <div class="container hero-inner">
-        <div class="hero-copy">
+        <div class="hero-copy" data-parallax="0.06">
           <p class="eyebrow">Tecnología · Desarrollo · IA</p>
           <h1 id="hero-title">Entiende el futuro <span class="grad-text">antes que llegue.</span></h1>
           <p class="lead">Herramientas, tips y casos reales de inteligencia artificial y desarrollo, explicados con claridad para que tomes mejores decisiones hoy.</p>
           <div class="cta-row">
-            <a class="btn btn-primary btn-lg" href="#newsletter">Únete al newsletter
+            <a class="btn btn-primary btn-lg" data-magnet href="#newsletter">Únete al newsletter
               <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg>
             </a>
             <a class="btn btn-secondary btn-lg" href="#contenido">Ver contenido</a>
@@ -113,22 +113,22 @@
           <p class="section-sub">Todo lo que publicamos nace de estos ejes.</p>
         </header>
         <ul class="card-grid pillars">
-          <li class="card reveal">
+          <li class="card reveal" data-tilt>
             <span class="icon-badge"><svg class="icon icon-lg" aria-hidden="true"><use href="#i-brain"/></svg></span>
             <h3>Inteligencia Artificial</h3>
             <p>Modelos, herramientas y casos reales para usar la IA con criterio.</p>
           </li>
-          <li class="card reveal">
+          <li class="card reveal" data-tilt>
             <span class="icon-badge"><svg class="icon icon-lg" aria-hidden="true"><use href="#i-code"/></svg></span>
             <h3>Desarrollo</h3>
             <p>Código, arquitectura y buenas prácticas que envejecen bien.</p>
           </li>
-          <li class="card reveal">
+          <li class="card reveal" data-tilt>
             <span class="icon-badge"><svg class="icon icon-lg" aria-hidden="true"><use href="#i-chip"/></svg></span>
             <h3>Tecnología</h3>
             <p>Hardware, nube y plataformas: lo que cambia y por qué importa.</p>
           </li>
-          <li class="card reveal">
+          <li class="card reveal" data-tilt>
             <span class="icon-badge"><svg class="icon icon-lg" aria-hidden="true"><use href="#i-rocket"/></svg></span>
             <h3>Futuro</h3>
             <p>Tendencias y señales para anticiparte a lo que viene.</p>
@@ -144,22 +144,22 @@
           <h2 id="contenido-title">Lo que estamos publicando</h2>
         </header>
         <ul class="card-grid posts">
-          <li class="card post reveal">
-            <img class="post-media" src="assets/card-ia.webp" width="349" height="349" loading="lazy" decoding="async" alt="Ilustración azul luminosa de una cabeza humana con un cerebro de red neuronal">
+          <li class="card post reveal" data-tilt>
+            <div class="post-visual"><img class="post-media" src="assets/card-ia.webp" width="349" height="349" loading="lazy" decoding="async" alt="Ilustración azul luminosa de una cabeza humana con un cerebro de red neuronal"></div>
             <span class="icon-badge"><svg class="icon icon-lg" aria-hidden="true"><use href="#i-brain"/></svg></span>
             <h3>IA que sí importa</h3>
             <p>Herramientas, tips y casos reales. Sin humo, con resultados que puedes replicar.</p>
             <a class="text-link" href="#newsletter">Quiero recibirlo <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
           </li>
-          <li class="card post reveal">
-            <img class="post-media" src="assets/card-codigo.webp" width="349" height="349" loading="lazy" decoding="async" alt="Ilustración azul luminosa de los símbolos de código, una laptop y un pequeño robot">
+          <li class="card post reveal" data-tilt>
+            <div class="post-visual"><img class="post-media" src="assets/card-codigo.webp" width="349" height="349" loading="lazy" decoding="async" alt="Ilustración azul luminosa de los símbolos de código, una laptop y un pequeño robot"></div>
             <span class="icon-badge"><svg class="icon icon-lg" aria-hidden="true"><use href="#i-code"/></svg></span>
             <h3>Código hoy, mejores opciones mañana</h3>
             <p>Aprende. Experimenta. Evoluciona. Decisiones técnicas que te dejan abiertas más puertas.</p>
             <a class="text-link" href="#newsletter">Quiero recibirlo <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
           </li>
-          <li class="card post reveal">
-            <img class="post-media" src="assets/card-futuro.webp" width="349" height="349" loading="lazy" decoding="async" alt="Ilustración azul luminosa de una ciudad futurista con rascacielos y una autopista">
+          <li class="card post reveal" data-tilt>
+            <div class="post-visual"><img class="post-media" src="assets/card-futuro.webp" width="349" height="349" loading="lazy" decoding="async" alt="Ilustración azul luminosa de una ciudad futurista con rascacielos y una autopista"></div>
             <span class="icon-badge"><svg class="icon icon-lg" aria-hidden="true"><use href="#i-monitor"/></svg></span>
             <h3>La tecnología no se detiene. Tú tampoco.</h3>
             <p>Un repaso constante de lo que cambia en la industria para que sigas al día.</p>
@@ -186,7 +186,7 @@
 
     <section class="section" id="newsletter" aria-labelledby="newsletter-title">
       <div class="container">
-        <div class="cta-band reveal">
+        <div class="cta-band reveal" data-tilt data-tilt-max="2.5">
           <div>
             <h2 id="newsletter-title">Recibe lo que importa, sin ruido</h2>
             <p class="section-sub">Un correo con IA, desarrollo y tecnología. Cancela cuando quieras.</p>
@@ -196,7 +196,7 @@
             <label for="email">Correo electrónico</label>
             <div class="signup-row">
               <input id="email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="tu@correo.com" required aria-describedby="email-msg">
-              <button class="btn btn-primary" type="submit">Suscribirme</button>
+              <button class="btn btn-primary" data-magnet type="submit">Suscribirme</button>
             </div>
             <p class="form-msg" id="email-msg" role="status" aria-live="polite"></p>
           </form>
@@ -226,6 +226,7 @@
   </footer>
 
   <script src="js/main.js" defer></script>
+  <script src="js/tilt.js" defer></script>
   <script type="module" src="js/hero-3d.js"></script>
 </body>
 </html>
