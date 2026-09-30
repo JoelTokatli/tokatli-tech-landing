@@ -19,6 +19,19 @@
   <meta name="twitter:description" content="Tecnología, desarrollo e inteligencia artificial: herramientas, tips y casos reales.">
   <meta name="twitter:image" content="assets/og-image.svg">
 
+  <script>
+    // Gate JS-only styling early (no flash) and arm the poster fallback if the 3D hero has not rendered in 5s
+    document.documentElement.classList.add('js');
+    setTimeout(function () {
+      var v = document.querySelector('.hero-visual');
+      if (!v || !v.classList.contains('is-3d')) document.documentElement.classList.add('hero-fallback');
+    }, 5000);
+  </script>
+  <noscript><style>.hero-visual img { opacity: 1 !important; }</style></noscript>
+  <script nomodule>document.documentElement.classList.add('hero-fallback');</script>
+
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -100,7 +113,7 @@
             sizes="(min-width: 1024px) 45vw, min(100vw, 560px)"
             width="1448" height="1086"
             alt="Letra T 3D luminosa con nodos de circuito y un anillo orbital, que representa la tecnología y la inteligencia artificial"
-            fetchpriority="high" decoding="async">
+            loading="lazy" decoding="async">
         </div>
       </div>
     </section>

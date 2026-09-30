@@ -36,7 +36,7 @@ The form has no backend. Set your provider endpoint in `index.html`:
 
 ## 3D hero
 
-`js/hero-3d.js` (ES module) renders the brand "T" with orbiting electrons using Three.js `0.160.0`, lazy-loaded from jsDelivr (`https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js`) only after `load` + idle. The static hero `<img>` remains the poster/LCP element and the fallback: no canvas is created with `prefers-reduced-motion`, `saveData`, or no WebGL, and the canvas is removed on errors or WebGL context loss. Rendering pauses when the hero is off-screen or the tab is hidden. Colors are read from the CSS custom properties in `:root`.
+`js/hero-3d.js` (ES module) renders the brand "T" with orbiting electrons using Three.js `0.160.0` from jsDelivr. The import starts as soon as the module runs (`index.html` preconnects and modulepreloads it), and the canvas fades in after its first rendered frame. With JS on, the static hero `<img>` is hidden (its box stays reserved, so no layout shift) and is used only as a fallback: `html.hero-fallback` fades it in on `prefers-reduced-motion`, `saveData`, no WebGL, import errors, WebGL context loss, or when no frame has rendered after 5 s. The orbit rings are circles of radius >= 2.6 around the T's rotation origin (the T's farthest point is 2.29 away), so they never intersect it at any sway angle. Rendering pauses when the hero is off-screen or the tab is hidden. Colors are read from the CSS custom properties in `:root`.
 
 ## Interactive 3D effects
 

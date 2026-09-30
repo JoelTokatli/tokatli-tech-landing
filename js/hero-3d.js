@@ -1,13 +1,19 @@
 /*
- * Hero 3D scene: brand "T" with atom-style orbits (Three.js, lazy-loaded).
- * The static <img> stays in the DOM as poster/fallback and LCP element.
- * The canvas is only created after load + idle, and removed on any failure.
+ * Hero 3D scene: brand "T" with atom-style orbits (Three.js, loaded from a CDN).
+ * With JS on, the static <img> poster is hidden (see css) and used only as a fallback:
+ * any bail-out adds `hero-fallback` to <html>, which fades the poster in.
+ * The import starts as soon as this module runs (index.html modulepreloads Three.js).
  */
 const THREE_URL = 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js';
 
+const root = document.documentElement;
 const host = document.querySelector('.hero-visual');
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const conn = navigator.connection;
+
+function showFallback() {
+  root.classList.add('hero-fallback');
+}
 
 function hasWebGL() {
   try {
@@ -22,29 +28,24 @@ function hasWebGL() {
   }
 }
 
-function whenIdle() {
-  return new Promise((resolve) => {
-    const idle = () =>
-      'requestIdleCallback' in window
-        ? window.requestIdleCallback(resolve, { timeout: 3000 })
-        : setTimeout(resolve, 200);
-    if (document.readyState === 'complete') idle();
-    else window.addEventListener('load', idle, { once: true });
-  });
-}
-
 async function start() {
-  if (!host || reduceMotion.matches || (conn && conn.saveData)) return;
-  await whenIdle();
-  if (reduceMotion.matches || !hasWebGL()) return;
+  if (!host) return;
+  if (reduceMotion.matches || (conn && conn.saveData)) return showFallback();
+
+  // Kick the download off before the (cheap) WebGL probe so they overlap
+  const loading = import(THREE_URL);
+  loading.catch(() => {});
+  if (!hasWebGL()) return showFallback();
 
   try {
-    const THREE = await import(THREE_URL);
-    // Preferences may have changed while the module downloaded
-    if (reduceMotion.matches || (conn && conn.saveData)) return;
+    const THREE = await loading;
+    // Preferences may have changed, or the safety timeout may have fired, while the module downloaded
+    if (reduceMotion.matches || (conn && conn.saveData) || root.classList.contains('hero-fallback')) {
+      return showFallback();
+    }
     build(THREE);
   } catch (err) {
-    host.classList.remove('is-3d');
+    showFallback();
     console.warn('[hero-3d] falling back to static image', err);
   }
 }
@@ -57,6 +58,7 @@ function build(THREE) {
     if (disposed) return;
     disposed = true;
     host.classList.remove('is-3d');
+    showFallback();
     while (undo.length) {
       try { undo.pop()(); } catch (e) { /* keep tearing down */ }
     }
@@ -365,6 +367,12 @@ function setup(THREE, undo, isDisposed, cleanup) {
     cur.x += (target.x - cur.x) * 0.05;
     cur.y += (target.y - cur.y) * 0.05;
 
+    // Short scale-in (~600 ms); T and orbits scale together about the shared origin
+    const k = Math.min(time / 0.6, 1);
+    const intro = 0.86 + 0.14 * (1 - (1 - k) ** 3);
+    tGroup.scale.setScalar(intro);
+    orbitGroup.scale.setScalar(intro);
+
     tGroup.rotation.y = Math.sin(time * 0.55) * 0.43 + cur.x * 0.12; // about +/-25 deg
     tGroup.rotation.x = cur.y * 0.06;
     tGroup.position.y = Math.sin(time * 0.9) * 0.06;
@@ -433,13 +441,16 @@ function setup(THREE, undo, isDisposed, cleanup) {
     cleanup();
   });
 
-  // First frame, then reveal (poster fades out once the canvas is visible)
+  // First frame, then reveal (canvas fades in; the poster stays hidden)
   last = performance.now();
   frame(last);
   if (isDisposed()) return;
   sync();
   requestAnimationFrame(() => {
-    if (!isDisposed()) host.classList.add('is-3d');
+    if (isDisposed()) return;
+    // The safety timeout already showed the poster: keep it, do not stack the canvas on top
+    if (root.classList.contains('hero-fallback')) cleanup();
+    else host.classList.add('is-3d');
   });
 }
 

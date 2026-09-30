@@ -314,7 +314,11 @@ h3 { font-size: var(--fs-lg); font-weight: 600; }
   mask-image: radial-gradient(ellipse closest-side at 50% 50%, #000 55%, transparent 100%);
 }
 .hero-visual img { width: 100%; height: auto; aspect-ratio: 1448 / 1086; animation: hero-float 8s ease-in-out infinite; }
-/* 3D scene (js/hero-3d.js): canvas fades in over the poster, which stays in flow (no layout shift) */
+/* With JS the poster is hidden (space stays reserved by its width/height) and the 3D canvas takes over.
+   The poster is only the fallback: js/hero-3d.js (or the 5s timeout in index.html) adds .hero-fallback to <html>. */
+html.js .hero-visual img { opacity: 0; }
+html.js.hero-fallback .hero-visual img { opacity: 1; transition: opacity 500ms ease; }
+/* 3D scene (js/hero-3d.js): absolutely positioned over the reserved box, so it cannot shift layout */
 .hero-canvas {
   position: absolute;
   inset: 0;
@@ -322,10 +326,9 @@ h3 { font-size: var(--fs-lg); font-weight: 600; }
   height: 100%;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 400ms ease;
+  transition: opacity 600ms ease;
 }
 .hero-visual.is-3d .hero-canvas { opacity: 1; }
-.hero-visual.is-3d img { opacity: 0; animation: none; transition: opacity 400ms ease 400ms; }
 @keyframes hero-float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-8px); }
@@ -604,6 +607,7 @@ html.js [data-tilt].is-done:has(:focus-visible):not(.is-tilting) { transform: pe
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .hero-visual img { animation: none; }
+  html.js .hero-visual img { opacity: 1; }
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
   .js .reveal { opacity: 1; transform: none; transition: none; }
   .btn-primary:hover, .btn-primary:active, .card:hover, .social a:hover, .signup input:focus-visible { transform: none; }
