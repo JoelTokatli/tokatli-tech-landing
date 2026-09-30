@@ -217,9 +217,10 @@ function setup(THREE, undo, isDisposed, cleanup) {
   const nodeGeo = track(new THREE.SphereGeometry(0.11, 24, 16));
   const jointGeo = track(new THREE.SphereGeometry(0.036, 12, 8));
   const traces = [
-    { pts: [[0.42, 0.45], [1.05, 0.45], [1.45, 0.85], [1.95, 0.85]], mat: traceHi },
-    { pts: [[0.42, 0.0], [1.0, 0.0], [1.4, 0.4], [2.05, 0.4]], mat: traceHi },
-    { pts: [[0.42, -0.55], [1.0, -0.55], [1.25, -0.3], [1.85, -0.3]], mat: traceMat },
+    // Two traces, matching the brand isotype: a longer upper one and a shorter lower one,
+    // each leaving the stem horizontally and bending diagonally up-right to a node.
+    { pts: [[0.42, -0.25], [0.75, -0.25], [1.78, 0.95]], mat: traceHi },
+    { pts: [[0.42, -0.85], [0.75, -0.85], [1.6, 0.12]], mat: traceMat },
   ];
   const nodes = [];
   traces.forEach(({ pts, mat }) => {
