@@ -200,7 +200,8 @@
     }
   }
 
-  function enabledMotion() { return !mqReduce.matches; }
+  // Scroll parallax is skipped on touch devices (per-frame main-thread work while scrolling)
+  function enabledMotion() { return !mqReduce.matches && mqFine.matches; }
 
   function onScroll() {
     scrollDirty = true;

@@ -7,24 +7,42 @@
   var toggle = document.querySelector('.nav-toggle');
   var menu = document.getElementById('site-nav');
 
+  var FOCUSABLE = 'a[href], button:not([disabled])';
+
   function setMenu(open) {
     toggle.setAttribute('aria-expanded', String(open));
     toggle.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
     menu.classList.toggle('is-open', open);
+    document.body.classList.toggle('menu-open', open); // scroll lock while the overlay is open
   }
+
+  function isOpen() { return toggle.getAttribute('aria-expanded') === 'true'; }
 
   if (toggle && menu) {
     toggle.addEventListener('click', function () {
-      setMenu(toggle.getAttribute('aria-expanded') !== 'true');
+      setMenu(!isOpen());
     });
     menu.addEventListener('click', function (e) {
       if (e.target.closest('a')) setMenu(false);
     });
+    // Tap outside the header closes the menu
+    document.addEventListener('click', function (e) {
+      if (isOpen() && !e.target.closest('.site-header')) setMenu(false);
+    });
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') {
+      if (!isOpen()) return;
+      if (e.key === 'Escape') {
         setMenu(false);
         toggle.focus();
+        return;
       }
+      if (e.key !== 'Tab') return;
+      // Focus trap: toggle + menu items form one cycle while open
+      var nodes = [toggle].concat(Array.prototype.slice.call(menu.querySelectorAll(FOCUSABLE)));
+      var first = nodes[0];
+      var last = nodes[nodes.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     });
     window.matchMedia('(min-width: 1024px)').addEventListener('change', function (e) {
       if (e.matches) setMenu(false);
@@ -98,6 +116,13 @@
   }
 
   if (form) {
+    // Keep the field clear of the on-screen keyboard on phones
+    input.addEventListener('focus', function () {
+      if (!window.matchMedia('(pointer: coarse)').matches) return;
+      setTimeout(function () {
+        input.scrollIntoView({ block: 'center', behavior: mqReduce.matches ? 'auto' : 'smooth' });
+      }, 300);
+    });
     input.addEventListener('blur', function () { if (input.value) validate(); });
     input.addEventListener('input', function () {
       if (input.getAttribute('aria-invalid') === 'true') validate();
