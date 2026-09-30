@@ -111,7 +111,7 @@ button { cursor: pointer; }
   top: -100px;
   z-index: 100;
   padding: var(--space-3) var(--space-4);
-  background: var(--color-accent);
+  background: var(--gradient-action);
   color: var(--color-on-action);
   font-weight: 700;
   border-radius: var(--radius-sm);
