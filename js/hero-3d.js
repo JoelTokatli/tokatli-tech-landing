@@ -238,25 +238,34 @@ function setup(THREE, undo, isDisposed, cleanup) {
   });
 
   // ---- Orbits (atom-style rings) ----
+  // Clearance: every T vertex lies within 2.29 units of the T group origin (measured on the
+  // extruded body, traces and nodes), and the T only rotates/floats about that origin. The orbit
+  // group shares the origin and float, so circular rings with r >= 2.6 stay >= 0.3 away from the
+  // mesh at any sway angle, pointer offset or orbit spin. Do not shrink r without re-measuring.
   const orbitGroup = new THREE.Group();
   scene.add(orbitGroup);
   const ringDefs = [
-    { rx: 2.75, ry: 0.85, tilt: [0.25, 0, 0.18], color: cyan, speed: 0.9, e: [0, 3.4] },
-    { rx: 2.55, ry: 0.75, tilt: [0.35, 0, -1.0], color: blue, speed: -0.65, e: [1.5] },
-    { rx: 2.9, ry: 0.95, tilt: [-0.35, 0.4, 0.85], color: purple, speed: 0.5, e: [2.2, 5.3] },
+    { r: 2.62, tau: 46, psi: 30, color: cyan, speed: 0.9, e: [0, 3.4] },
+    { r: 2.74, tau: 46, psi: 150, color: blue, speed: -0.65, e: [1.5] },
+    { r: 2.86, tau: 46, psi: 270, color: purple, speed: 0.5, e: [2.2, 5.3] },
   ];
+  const AXIS_Z = new THREE.Vector3(0, 0, 1);
+  const rad = (deg) => (deg * Math.PI) / 180;
   const TRAIL = 9;
   const trailMats = [];
   const electrons = [];
   ringDefs.forEach((def) => {
     const pivot = new THREE.Group();
-    pivot.rotation.set(...def.tilt);
+    // Ring-plane normal: tilted `tau` degrees from vertical, toward azimuth `psi`
+    pivot.quaternion.setFromUnitVectors(
+      AXIS_Z,
+      new THREE.Vector3(Math.sin(rad(def.tau)) * Math.sin(rad(def.psi)), Math.cos(rad(def.tau)), Math.sin(rad(def.tau)) * Math.cos(rad(def.psi)))
+    );
     orbitGroup.add(pivot);
     const ring = new THREE.Mesh(
-      track(new THREE.TorusGeometry(def.rx, 0.012, 8, 160)),
+      track(new THREE.TorusGeometry(def.r, 0.012, 8, 160)),
       track(new THREE.MeshBasicMaterial({ color: def.color, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false }))
     );
-    ring.scale.y = def.ry / def.rx;
     pivot.add(ring);
 
     def.e.forEach((phase) => {
@@ -371,9 +380,9 @@ function setup(THREE, undo, isDisposed, cleanup) {
     points.rotation.z = time * 0.02;
 
     electrons.forEach((el) => {
-      const { rx, ry, speed } = el.def;
+      const { r, speed } = el.def;
       const a0 = el.phase + time * speed;
-      const place = (obj, a) => obj.position.set(Math.cos(a) * rx, Math.sin(a) * ry, 0);
+      const place = (obj, a) => obj.position.set(Math.cos(a) * r, Math.sin(a) * r, 0);
       place(el.core, a0);
       place(el.halo, a0);
       const dir = Math.sign(speed);
