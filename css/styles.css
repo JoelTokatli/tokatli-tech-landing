@@ -62,8 +62,9 @@
   --radius-md: 12px;
   --radius-lg: 20px;
   --radius-full: 999px;
-  --shadow-1: 0 2px 8px rgba(0, 0, 0, 0.25);
-  --shadow-2: 0 12px 32px rgba(0, 0, 0, 0.35);
+  --shadow-rgb: 0, 0, 0;
+  --shadow-1: 0 2px 8px rgba(var(--shadow-rgb), 0.25);
+  --shadow-2: 0 12px 32px rgba(var(--shadow-rgb), 0.35);
   --shadow-glow: 0 8px 28px rgba(0, 229, 255, 0.25);
 
   /* Motion */
@@ -90,7 +91,7 @@
   --reveal-rx: 8deg;
   --reveal-y: 24px;
   --reveal-persp: 900px;
-  --btn-bevel: inset 0 1px 0 color-mix(in srgb, var(--color-text) 28%, transparent), inset 0 -3px 0 rgba(0, 0, 0, 0.18);
+  --btn-bevel: inset 0 1px 0 color-mix(in srgb, var(--color-text) 28%, transparent), inset 0 -3px 0 rgba(var(--shadow-rgb), 0.18);
 
   --container: 1200px;
   --gutter: var(--space-4);
@@ -207,7 +208,7 @@ h3 { font-size: var(--fs-lg); font-weight: 600; }
 .btn-lg { min-height: 52px; padding-inline: var(--space-8); }
 .btn-primary { background: var(--gradient-action); color: var(--color-on-action); box-shadow: var(--shadow-glow), var(--btn-bevel); }
 .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0, 229, 255, 0.35), var(--btn-bevel); }
-.btn-primary:active { transform: translateY(1px) scale(0.98); box-shadow: var(--shadow-1), inset 0 2px 5px rgba(0, 0, 0, 0.3); }
+.btn-primary:active { transform: translateY(1px) scale(0.98); box-shadow: var(--shadow-1), inset 0 2px 5px rgba(var(--shadow-rgb), 0.3); }
 .btn-secondary { background: transparent; color: var(--color-text); border-color: var(--color-border); }
 .btn-secondary:hover { background: var(--color-surface-2); }
 
@@ -482,6 +483,8 @@ h3 { font-size: var(--fs-lg); font-weight: 600; }
   transform: none;
   transition: transform var(--dur-fast) var(--ease), border-color var(--dur-base) var(--ease);
 }
+/* `.is-done` (0,3,0) would beat `.card:hover`; restore the plain hover lift when tilt is off (touch / reduced motion) */
+html.js:not(.tilt-on) .reveal.is-done.card:hover { transform: translateY(-4px); }
 
 /* 3D tilt cards (js/tilt.js) --------------------------------------------- */
 [data-tilt] { position: relative; transform-style: preserve-3d; }
@@ -498,7 +501,7 @@ html.js [data-tilt].is-tilting {
 .tilt-shadow {
   inset: 12px 8px -8px;
   border-radius: inherit;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(var(--shadow-rgb), 0.55);
   filter: blur(20px);
   opacity: calc(var(--lift, 0) * 0.8);
   transform: translate3d(calc(var(--sx, 0) * 1px), calc(var(--sy, 0) * 1px + var(--lift, 0) * 10px), calc(var(--lift, 0) * -1 * var(--tilt-lift) - 1px));
@@ -558,7 +561,7 @@ html.js [data-tilt].is-done:has(:focus-visible):not(.is-tilting) { transform: pe
 
 /* Input depth on focus (the global focus ring stays) */
 .signup input { transition: border-color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease), box-shadow var(--dur-base) var(--ease); }
-.signup input:focus-visible { border-color: var(--color-accent); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35), 0 0 0 4px color-mix(in srgb, var(--brand-cyan) 18%, transparent); transform: translateY(-1px); }
+.signup input:focus-visible { border-color: var(--color-accent); box-shadow: 0 6px 18px rgba(var(--shadow-rgb), 0.35), 0 0 0 4px color-mix(in srgb, var(--brand-cyan) 18%, transparent); transform: translateY(-1px); }
 
 /* Touch: no pointer tilt, just a gentle press-in */
 @media (hover: none), (pointer: coarse) {
@@ -604,7 +607,12 @@ html.js [data-tilt].is-done:has(:focus-visible):not(.is-tilting) { transform: pe
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
   .js .reveal { opacity: 1; transform: none; transition: none; }
   .btn-primary:hover, .btn-primary:active, .card:hover, .social a:hover, .signup input:focus-visible { transform: none; }
-  html.js .reveal.is-done[data-tilt]:active, html.js [data-tilt]:has(:focus-visible) { transform: none; }
+  html.js .reveal.is-done[data-tilt]:active, html.js [data-tilt]:has(:focus-visible),
+  html.js [data-tilt].is-done:has(:focus-visible):not(.is-tilting),
+  html.js:not(.tilt-on) .reveal.is-done.card:hover { transform: none; }
+  /* Keyboard focus keeps its ring but no lift, media zoom or glow change */
+  html.js [data-tilt]:has(:focus-visible):not(.is-tilting) { --lift: 0; }
+  .post-media { transform: none; }
   .tilt-shadow, .tilt-glare { display: none; }
   [data-magnet] { translate: none; }
   [data-parallax] { translate: none !important; }

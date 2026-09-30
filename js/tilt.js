@@ -11,6 +11,7 @@
 
   var DAMP = 0.16;  // fraction of the remaining distance covered per 16.7ms frame
   var EPS = 0.002;
+  var EDGE_TOL = 2;     // px of hysteresis around the un-tilted rect before a hover ends
   var TILT_VARS = ['--rx', '--ry', '--lift', '--px', '--py', '--gx', '--gy', '--sx', '--sy'];
   var MAGNET_VARS = ['--bx', '--by'];
 
@@ -36,7 +37,7 @@
       el: el, kind: kind, hover: false, visible: true, live: false,
       max: kind === 'tilt' ? (parseFloat(el.getAttribute('data-tilt-max')) || TILT_MAX) : MAGNET_MAX,
       left: 0, top: 0, w: 0, h: 0, measured: false,
-      tx: 0, ty: 0, x: 0, y: 0, lift: 0, tl: 0
+      tx: 0, ty: 0, x: 0, y: 0, lift: 0, tl: 0, settled: false
     };
     if (kind === 'tilt') {
       it.shadow = document.createElement('span');
@@ -65,6 +66,7 @@
 
   function enter(it, e) {
     if (!enabled || e.pointerType === 'touch' || isRevealing(it.el)) return;
+    if (it.hover) { move(it, e); return; }
     if (!it.live || !it.measured) measure(it); // reuse the cache while easing back (element is slightly transformed)
     it.hover = true;
     it.tl = it.kind === 'tilt' ? 1 : 0;
@@ -88,6 +90,7 @@
     var ny = (e.clientY + window.pageYOffset - it.top) / it.h * 2 - 1;
     it.tx = nx < -1 ? -1 : nx > 1 ? 1 : nx;
     it.ty = ny < -1 ? -1 : ny > 1 ? 1 : ny;
+    it.settled = false;
     schedule();
   }
 
@@ -95,7 +98,28 @@
     if (!it.hover) return;
     it.hover = false;
     it.tx = 0; it.ty = 0; it.tl = 0;
+    it.settled = false;
     schedule();
+  }
+
+  // The hovered element is itself transformed, so its edge moves under a
+  // resting pointer. Hit-test against the stable, un-tilted rect instead.
+  function inside(it, e) {
+    var l = it.left - window.pageXOffset, t = it.top - window.pageYOffset;
+    return e.clientX >= l - EDGE_TOL && e.clientX <= l + it.w + EDGE_TOL &&
+           e.clientY >= t - EDGE_TOL && e.clientY <= t + it.h + EDGE_TOL;
+  }
+
+  function onDocMove(e) {
+    for (var i = 0; i < items.length; i++) {
+      var it = items[i];
+      if (!it.hover) continue;
+      if (inside(it, e)) move(it, e); else leave(it);
+    }
+  }
+
+  function leaveAll() {
+    for (var i = 0; i < items.length; i++) leave(items[i]);
   }
 
   function clear(it) {
@@ -105,6 +129,7 @@
     if (it.kind === 'tilt') it.el.classList.remove('is-tilting');
     it.x = it.y = it.lift = it.tx = it.ty = it.tl = 0;
     it.hover = false;
+    it.settled = false;
     if (it.live) {
       it.live = false;
       var i2 = live.indexOf(it);
@@ -137,6 +162,7 @@
 
   function frame(t) {
     raf = 0;
+    var active = false;
     var dt = last ? Math.min(t - last, 50) : 16.7;
     last = t;
     var k = 1 - Math.pow(1 - DAMP, dt / 16.7);
@@ -144,19 +170,24 @@
     for (var i = live.length - 1; i >= 0; i--) {
       var it = live[i];
       if (!it.visible && !it.hover) { clear(it); continue; }
+      if (it.settled) continue; // hovered and at its target: idle until the next pointermove
       it.x += (it.tx - it.x) * k;
       it.y += (it.ty - it.y) * k;
       it.lift += (it.tl - it.lift) * k;
-      if (!it.hover && Math.abs(it.x) < EPS && Math.abs(it.y) < EPS && it.lift < EPS) {
-        clear(it);
+      if (Math.abs(it.tx - it.x) < EPS && Math.abs(it.ty - it.y) < EPS && Math.abs(it.tl - it.lift) < EPS) {
+        if (!it.hover) { clear(it); continue; }
+        it.x = it.tx; it.y = it.ty; it.lift = it.tl;
+        it.settled = true;
+        write(it);
       } else {
         write(it);
+        active = true;
       }
     }
 
     if (scrollDirty) { scrollDirty = false; updateParallax(); }
 
-    if (live.length) schedule(); else last = 0;
+    if (active || scrollDirty) schedule(); else last = 0;
   }
 
   // Scroll parallax (translate only, hero copy and glows) ------------------
@@ -180,8 +211,10 @@
   function bind(it) {
     var el = it.el;
     el.addEventListener('pointerenter', function (e) { enter(it, e); });
-    el.addEventListener('pointermove', function (e) { move(it, e); }, { passive: true });
-    el.addEventListener('pointerleave', function () { leave(it); });
+    el.addEventListener('pointermove', function (e) { if (it.hover) move(it, e); else enter(it, e); }, { passive: true });
+    // pointerleave also fires when the tilted edge slides under a resting pointer; the
+    // document-level hit test against the stable rect decides when the hover really ends.
+    el.addEventListener('pointerleave', function (e) { if (!it.hover || !inside(it, e)) leave(it); });
     el.addEventListener('pointercancel', function () { leave(it); });
     items.push(it);
   }
@@ -221,6 +254,9 @@
       parallax.forEach(function (p) { io.observe(p.el); });
     }
 
+    document.addEventListener('pointermove', onDocMove, { passive: true });
+    document.documentElement.addEventListener('pointerleave', leaveAll);
+    window.addEventListener('blur', leaveAll);
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', function () {
       items.forEach(function (it) { it.measured = false; });
