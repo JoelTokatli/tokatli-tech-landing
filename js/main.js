@@ -23,7 +23,11 @@
       setMenu(!isOpen());
     });
     menu.addEventListener('click', function (e) {
-      if (e.target.closest('a')) setMenu(false);
+      if (!e.target.closest('a')) return;
+      setMenu(false);
+      // Keyboard activation (detail === 0): the focused link just got hidden, so return focus to the toggle
+      // Deferred: the default fragment navigation runs after this handler and would reset focus to BODY
+      if (e.detail === 0) setTimeout(function () { toggle.focus({ preventScroll: true }); }, 0);
     });
     // Tap outside the header closes the menu
     document.addEventListener('click', function (e) {
@@ -47,6 +51,17 @@
     window.matchMedia('(min-width: 1024px)').addEventListener('change', function (e) {
       if (e.matches) setMenu(false);
     });
+  }
+
+  // Carousel: only a keyboard tab stop while it actually scrolls (not in the desktop grid)
+  var scroller = document.querySelector('.card-grid.posts[tabindex]');
+  if (scroller) {
+    var syncScroller = function () {
+      if (getComputedStyle(scroller).overflowX !== 'visible') scroller.setAttribute('tabindex', '0');
+      else scroller.removeAttribute('tabindex');
+    };
+    syncScroller();
+    window.addEventListener('resize', syncScroller);
   }
 
   // Scroll reveal ----------------------------------------------------------

@@ -620,12 +620,13 @@ html.js [data-tilt].is-done:has(:focus-visible):not(.is-tilting) { transform: pe
     overflow-x: auto;
     overscroll-behavior-x: contain;
     scroll-snap-type: x mandatory;
-    scroll-padding-inline: var(--gutter);
-    margin-inline: calc(-1 * var(--gutter));
-    padding: var(--space-2) var(--gutter) var(--space-4);
+    scroll-padding-inline: max(var(--gutter), env(safe-area-inset-left, 0px)) max(var(--gutter), env(safe-area-inset-right, 0px));
+    margin-inline: calc(-1 * max(var(--gutter), env(safe-area-inset-left, 0px))) calc(-1 * max(var(--gutter), env(safe-area-inset-right, 0px)));
+    padding: var(--space-2) max(var(--gutter), env(safe-area-inset-right, 0px)) var(--space-4) max(var(--gutter), env(safe-area-inset-left, 0px));
     scrollbar-width: thin;
     scrollbar-color: var(--color-border) transparent;
   }
+  .card-grid.posts:focus-visible { outline: 3px solid var(--color-focus); outline-offset: -3px; border-radius: var(--radius-md); }
   .card-grid.posts > li { flex: 0 0 min(82%, 340px); scroll-snap-align: center; }
   .card-grid.posts > li:first-child { scroll-snap-align: start; }
   .card-grid.posts > li:last-child { scroll-snap-align: end; }
@@ -674,7 +675,7 @@ html.js [data-tilt].is-done:has(:focus-visible):not(.is-tilting) { transform: pe
 /* >= 1024px --------------------------------------------------------------- */
 @media (min-width: 1024px) {
   .nav-toggle { display: none; }
-  .nav-menu { position: static; display: flex; flex-direction: row; align-items: center; gap: var(--space-8); padding: 0; background: none; border: 0; }
+  .nav-menu { position: static; display: flex; flex-direction: row; align-items: center; gap: var(--space-8); padding: 0; max-height: none; overflow: visible; overscroll-behavior: auto; background: none; border: 0; }
   .nav-links { flex-direction: row; gap: var(--space-6); }
   .card-grid.pillars { grid-template-columns: repeat(4, 1fr); }
   .card-grid.posts { grid-template-columns: repeat(3, 1fr); }
