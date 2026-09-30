@@ -20,18 +20,46 @@
   <meta name="twitter:image" content="assets/og-image.svg">
 
   <script>
-    // Gate JS-only styling early (no flash) and arm the poster fallback if the 3D hero has not rendered in 5s
-    document.documentElement.classList.add('js');
-    setTimeout(function () {
-      var v = document.querySelector('.hero-visual');
-      if (!v || !v.classList.contains('is-3d')) document.documentElement.classList.add('hero-fallback');
-    }, 5000);
+    // Gate JS-only styling early (no flash)
+    (function () {
+      var root = document.documentElement;
+      root.classList.add('js');
+      var conn = navigator.connection;
+      var gl = false;
+      // Only users who can actually get the 3D scene pay for Three.js (~700 KB)
+      if (!matchMedia('(prefers-reduced-motion: reduce)').matches && !(conn && conn.saveData)) {
+        try {
+          var probe = document.createElement('canvas');
+          var ctx = probe.getContext('webgl2') || probe.getContext('webgl');
+          if (ctx) {
+            gl = true;
+            var lose = ctx.getExtension('WEBGL_lose_context');
+            if (lose) lose.loseContext();
+          }
+        } catch (e) { /* no WebGL */ }
+      }
+      window.__heroGL = gl;
+      if (gl) {
+        var pre = document.createElement('link');
+        pre.rel = 'modulepreload';
+        pre.href = 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js';
+        pre.crossOrigin = 'anonymous'; // must match the cors-mode import() in js/hero-3d.js
+        document.head.appendChild(pre);
+      }
+      // Safety net: if the 3D hero has not rendered 6s after the page is parsed (CSS and modules
+      // included), show the poster. Armed at DOMContentLoaded so slow CSS cannot burn the budget.
+      document.addEventListener('DOMContentLoaded', function () {
+        setTimeout(function () {
+          var v = document.querySelector('.hero-visual');
+          if (!v || !v.classList.contains('is-3d')) root.classList.add('hero-fallback');
+        }, 6000);
+      });
+    })();
   </script>
   <noscript><style>.hero-visual img { opacity: 1 !important; }</style></noscript>
   <script nomodule>document.documentElement.classList.add('hero-fallback');</script>
 
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -113,7 +141,7 @@
             sizes="(min-width: 1024px) 45vw, min(100vw, 560px)"
             width="1448" height="1086"
             alt="Letra T 3D luminosa con nodos de circuito y un anillo orbital, que representa la tecnología y la inteligencia artificial"
-            loading="lazy" decoding="async">
+            loading="lazy" fetchpriority="low" decoding="async">
         </div>
       </div>
     </section>

@@ -315,9 +315,11 @@ h3 { font-size: var(--fs-lg); font-weight: 600; }
 }
 .hero-visual img { width: 100%; height: auto; aspect-ratio: 1448 / 1086; animation: hero-float 8s ease-in-out infinite; }
 /* With JS the poster is hidden (space stays reserved by its width/height) and the 3D canvas takes over.
-   The poster is only the fallback: js/hero-3d.js (or the 5s timeout in index.html) adds .hero-fallback to <html>. */
+   The poster is only the fallback: js/hero-3d.js (or the 6s safety timer in index.html) adds .hero-fallback to <html>. */
 html.js .hero-visual img { opacity: 0; }
 html.js.hero-fallback .hero-visual img { opacity: 1; transition: opacity 500ms ease; }
+/* Late teardown of a running scene (context loss, reduced-motion toggle): no fade, no blank gap */
+html.js.hero-fallback-now .hero-visual img { transition: none; }
 /* 3D scene (js/hero-3d.js): absolutely positioned over the reserved box, so it cannot shift layout */
 .hero-canvas {
   position: absolute;

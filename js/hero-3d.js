@@ -2,8 +2,11 @@
  * Hero 3D scene: brand "T" with atom-style orbits (Three.js, loaded from a CDN).
  * With JS on, the static <img> poster is hidden (see css) and used only as a fallback:
  * any bail-out adds `hero-fallback` to <html>, which fades the poster in.
- * The import starts as soon as this module runs (index.html modulepreloads Three.js).
+ * The import starts as soon as this module runs, only when 3D is allowed (the inline head script
+ * in index.html modulepreloads Three.js under the same conditions).
  */
+// Camera distance: ~4% of extra margin keeps rings and glows inside the canvas at pointer extremes
+const CAM_Z = 9.88;
 const THREE_URL = 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js';
 
 const root = document.documentElement;
@@ -32,10 +35,9 @@ async function start() {
   if (!host) return;
   if (reduceMotion.matches || (conn && conn.saveData)) return showFallback();
 
-  // Kick the download off before the (cheap) WebGL probe so they overlap
+  // Never download Three.js for a device that cannot render it (index.html probed already)
+  if (!(typeof window.__heroGL === 'boolean' ? window.__heroGL : hasWebGL())) return showFallback();
   const loading = import(THREE_URL);
-  loading.catch(() => {});
-  if (!hasWebGL()) return showFallback();
 
   try {
     const THREE = await loading;
@@ -58,6 +60,8 @@ function build(THREE) {
     if (disposed) return;
     disposed = true;
     host.classList.remove('is-3d');
+    // Swap to the poster instantly: a lost context blanks the canvas at once, so a 500ms fade would show a gap
+    root.classList.add('hero-fallback-now');
     showFallback();
     while (undo.length) {
       try { undo.pop()(); } catch (e) { /* keep tearing down */ }
@@ -98,7 +102,7 @@ function setup(THREE, undo, isDisposed, cleanup) {
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(34, 4 / 3, 0.1, 50);
-  camera.position.set(0, 0.1, 9.5);
+  camera.position.set(0, 0.1, CAM_Z);
 
   // ---- Lights ----
   scene.add(new THREE.HemisphereLight(0x6f8cff, 0x1a1040, 0.55));
@@ -330,7 +334,7 @@ function setup(THREE, undo, isDisposed, cleanup) {
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     // Keep the whole scene in frame on narrow boxes
-    camera.position.z = camera.aspect < 1.2 ? 9.5 * (1.2 / camera.aspect) ** 0.6 : 9.5;
+    camera.position.z = camera.aspect < 1.2 ? CAM_Z * (1.2 / camera.aspect) ** 0.6 : CAM_Z;
     camera.updateProjectionMatrix();
   };
   const ro = new ResizeObserver(resize);
