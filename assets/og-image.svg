@@ -23,6 +23,6 @@
       <circle cx="82" cy="29" r="4.5"/><circle cx="88" cy="45" r="4.5"/>
     </g>
   </g>
-  <text x="420" y="270" font-family="Montserrat, Arial, sans-serif" font-weight="700" font-size="96" fill="#FFFFFF">tokatli <tspan fill="#00E5FF">tech</tspan></text>
+  <text x="420" y="270" font-family="Montserrat, Arial, sans-serif" font-weight="700" font-size="96" fill="#FFFFFF">Tokatli <tspan fill="#00E5FF">Tech</tspan></text>
   <text x="424" y="340" font-family="Montserrat, Arial, sans-serif" font-size="36" fill="#C7D2FE">Entiende el futuro antes que llegue.</text>
 </svg>

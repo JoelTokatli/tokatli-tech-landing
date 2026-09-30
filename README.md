@@ -1,6 +1,6 @@
-# tokatli tech landing
+# Tokatli Tech landing
 
-Static landing page for the "tokatli tech" brand. Plain HTML, CSS and JS. No build step.
+Static landing page for the "Tokatli Tech" brand. Plain HTML, CSS and JS. No build step.
 
 ## Structure
 
