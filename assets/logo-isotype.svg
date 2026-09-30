@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100" role="img" aria-label="tokatli tech isotype">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#00E5FF"/>
+      <stop offset="0.55" stop-color="#3B82F6"/>
+      <stop offset="1" stop-color="#8B5CF6"/>
+    </linearGradient>
+  </defs>
+  <g fill="url(#g)">
+    <path d="M6 10H66Q74 10 70 18L64 28H6Z"/>
+    <path d="M6 32H24V54L6 44Z"/>
+    <path d="M28 32H54V70Q54 90 41 90Q28 90 28 70Z"/>
+  </g>
+  <g fill="none" stroke="url(#g)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M60 58L78 34"/>
+    <path d="M60 78L84 50"/>
+    <circle cx="82" cy="29" r="4.5" fill="#0B1026"/>
+    <circle cx="88" cy="45" r="4.5" fill="#0B1026"/>
+  </g>
+</svg>

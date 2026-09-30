@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>tokatli tech | Entiende el futuro antes que llegue</title>
+  <meta name="description" content="Tecnología, desarrollo e inteligencia artificial explicados con claridad. Herramientas, tips y casos reales para entender el futuro antes que llegue.">
+  <meta name="theme-color" content="#0B1026">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="es_LA">
+  <meta property="og:site_name" content="tokatli tech">
+  <meta property="og:title" content="tokatli tech | Entiende el futuro antes que llegue">
+  <meta property="og:description" content="Tecnología, desarrollo e inteligencia artificial: herramientas, tips y casos reales.">
+  <meta property="og:image" content="assets/og-image.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="tokatli tech | Entiende el futuro antes que llegue">
+  <meta name="twitter:description" content="Tecnología, desarrollo e inteligencia artificial: herramientas, tips y casos reales.">
+  <meta name="twitter:image" content="assets/og-image.svg">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Saltar al contenido</a>
+
+  <!-- Icon sprite: line icons, 1.75px stroke, 24x24 grid -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="icon-grad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#00E5FF"/>
+        <stop offset="1" stop-color="#3B82F6"/>
+      </linearGradient>
+      <symbol id="i-code" viewBox="0 0 24 24"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></symbol>
+      <symbol id="i-chip" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/><rect x="9.5" y="9.5" width="5" height="5" rx="1"/><path d="M9 3v3M15 3v3M9 18v3M15 18v3M3 9h3M3 15h3M18 9h3M18 15h3"/></symbol>
+      <symbol id="i-brain" viewBox="0 0 24 24"><path d="M12 5v14M12 5a3 3 0 00-5.6-1.3A3.5 3.5 0 004 7.5a3.5 3.5 0 001 2.4A3.5 3.5 0 004 12.5 3.5 3.5 0 005.5 15.3 3.5 3.5 0 009 19a3 3 0 003 0M12 5a3 3 0 015.6-1.3A3.5 3.5 0 0120 7.5a3.5 3.5 0 01-1 2.4 3.5 3.5 0 011 2.6 3.5 3.5 0 01-1.5 2.8A3.5 3.5 0 0115 19a3 3 0 01-3 0M8 10h2M14 12h2M8 15h2"/></symbol>
+      <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18a4.5 4.5 0 01-.6-8.96A6 6 0 0117.7 8.5 4.75 4.75 0 0117 18z"/></symbol>
+      <symbol id="i-rocket" viewBox="0 0 24 24"><path d="M5 15c-1.5 1.3-2 5-2 5s3.7-.5 5-2M12 15l-3-3a22 22 0 012-4 12.9 12.9 0 0111-5c0 2.7-.8 7.5-5 11a22 22 0 01-4 2zM9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/><circle cx="15.5" cy="8.5" r="1"/></symbol>
+      <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4M10.5 7.5v5l4-2.5z"/></symbol>
+      <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+      <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+      <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></symbol>
+      <symbol id="i-youtube" viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="4"/><path d="M10.5 9.5v5l4-2.5z"/></symbol>
+      <symbol id="i-instagram" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="5"/><circle cx="12" cy="12" r="3.5"/><path d="M16.5 7.5h.01"/></symbol>
+      <symbol id="i-linkedin" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="3"/><path d="M8 10.5V16M8 8h.01M11.5 16v-5.5M11.5 13c0-1.7 1-2.5 2.3-2.5 1.3 0 2.2.8 2.2 2.5V16"/></symbol>
+      <symbol id="i-x" viewBox="0 0 24 24"><path d="M4 4l16 16M20 4L4 20"/></symbol>
+    </defs>
+  </svg>
+
+  <header class="site-header" id="top">
+    <div class="container nav">
+      <a class="brand" href="#top" aria-label="tokatli tech, inicio">
+        <img src="assets/logo-isotype.svg" width="36" height="36" alt="">
+        <span class="wordmark">tokatli <span class="grad-text">tech</span></span>
+      </a>
+
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Abrir menú">
+        <svg class="icon icon-menu" aria-hidden="true"><use href="#i-menu"/></svg>
+        <svg class="icon icon-close" aria-hidden="true"><use href="#i-close"/></svg>
+      </button>
+
+      <nav id="site-nav" class="nav-menu" aria-label="Principal">
+        <ul class="nav-links">
+          <li><a href="#pilares">Pilares</a></li>
+          <li><a href="#contenido">Contenido</a></li>
+          <li><a href="#manifiesto">Manifiesto</a></li>
+        </ul>
+        <a class="btn btn-primary" href="#newsletter">Suscribirme</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-bg" aria-hidden="true">
+        <span class="glow glow-blue"></span>
+        <span class="glow glow-purple"></span>
+        <span class="grid-lines"></span>
+      </div>
+      <div class="container hero-inner">
+        <p class="eyebrow">Tecnología · Desarrollo · IA</p>
+        <h1 id="hero-title">Entiende el futuro <span class="grad-text">antes que llegue.</span></h1>
+        <p class="lead">Herramientas, tips y casos reales de inteligencia artificial y desarrollo, explicados con claridad para que tomes mejores decisiones hoy.</p>
+        <div class="cta-row">
+          <a class="btn btn-primary btn-lg" href="#newsletter">Únete al newsletter
+            <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg>
+          </a>
+          <a class="btn btn-secondary btn-lg" href="#contenido">Ver contenido</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="pilares" aria-labelledby="pilares-title">
+      <div class="container">
+        <header class="section-head reveal">
+          <p class="eyebrow">Pilares</p>
+          <h2 id="pilares-title">Cuatro temas, una misma visión</h2>
+          <p class="section-sub">Todo lo que publicamos nace de estos ejes.</p>
+        </header>
+        <ul class="card-grid pillars">
+          <li class="card reveal">
+            <span class="icon-badge"><svg class="icon icon-lg" aria-hidden="true"><use href="#i-brain"/></svg></span>
+            <h3>Inteligencia Artificial</h3>
+            <p>Modelos, herramientas y casos reales para usar la IA con criterio.</p>
+          </li>
+          <li class="card reveal">
+            <span class="icon-badge"><svg class="icon icon-lg" aria-hidden="true"><use href="#i-code"/></svg></span>
+            <h3>Desarrollo</h3>
+            <p>Código, arquitectura y buenas prácticas que envejecen bien.</p>
+          </li>
+          <li class="card reveal">
+            <span class="icon-badge"><svg class="icon icon-lg" aria-hidden="true"><use href="#i-chip"/></svg></span>
+            <h3>Tecnología</h3>
+            <p>Hardware, nube y plataformas: lo que cambia y por qué importa.</p>
+          </li>
+          <li class="card reveal">
+            <span class="icon-badge"><svg class="icon icon-lg" aria-hidden="true"><use href="#i-rocket"/></svg></span>
+            <h3>Futuro</h3>
+            <p>Tendencias y señales para anticiparte a lo que viene.</p>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section section-alt" id="contenido" aria-labelledby="contenido-title">
+      <div class="container">
+        <header class="section-head reveal">
+          <p class="eyebrow">Contenido destacado</p>
+          <h2 id="contenido-title">Lo que estamos publicando</h2>
+        </header>
+        <ul class="card-grid posts">
+          <li class="card post reveal">
+            <span class="icon-badge"><svg class="icon icon-lg" aria-hidden="true"><use href="#i-brain"/></svg></span>
+            <h3>IA que sí importa</h3>
+            <p>Herramientas, tips y casos reales. Sin humo, con resultados que puedes replicar.</p>
+            <a class="text-link" href="#newsletter">Quiero recibirlo <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          </li>
+          <li class="card post reveal">
+            <span class="icon-badge"><svg class="icon icon-lg" aria-hidden="true"><use href="#i-code"/></svg></span>
+            <h3>Código hoy, mejores opciones mañana</h3>
+            <p>Aprende. Experimenta. Evoluciona. Decisiones técnicas que te dejan abiertas más puertas.</p>
+            <a class="text-link" href="#newsletter">Quiero recibirlo <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          </li>
+          <li class="card post reveal">
+            <span class="icon-badge"><svg class="icon icon-lg" aria-hidden="true"><use href="#i-monitor"/></svg></span>
+            <h3>La tecnología no se detiene. Tú tampoco.</h3>
+            <p>Un repaso constante de lo que cambia en la industria para que sigas al día.</p>
+            <a class="text-link" href="#newsletter">Quiero recibirlo <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section" id="manifiesto" aria-labelledby="manifiesto-title">
+      <div class="container manifesto">
+        <div class="reveal">
+          <p class="eyebrow">Manifiesto</p>
+          <h2 id="manifiesto-title">Creemos en entender, no en seguir la moda</h2>
+          <p class="section-sub">La tecnología avanza rápido, pero las bases no cambian. Explicamos conceptos antes que herramientas, y herramientas antes que hype, para que puedas decidir con criterio propio.</p>
+        </div>
+        <ol class="steps reveal">
+          <li><span class="step-word">Aprende.</span><span class="step-text">Fundamentos sólidos primero.</span></li>
+          <li><span class="step-word">Experimenta.</span><span class="step-text">Prueba, rompe y vuelve a intentar.</span></li>
+          <li><span class="step-word">Evoluciona.</span><span class="step-text">Mejora con cada iteración.</span></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="section" id="newsletter" aria-labelledby="newsletter-title">
+      <div class="container">
+        <div class="cta-band reveal">
+          <div>
+            <h2 id="newsletter-title">Recibe lo que importa, sin ruido</h2>
+            <p class="section-sub">Un correo con IA, desarrollo y tecnología. Cancela cuando quieras.</p>
+          </div>
+          <!-- TODO: set the real form endpoint in data-action (Formspree, Netlify Forms, Buttondown, etc.). See README. -->
+          <form class="signup" id="signup-form" data-action="" novalidate>
+            <label for="email">Correo electrónico</label>
+            <div class="signup-row">
+              <input id="email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="tu@correo.com" required aria-describedby="email-msg">
+              <button class="btn btn-primary" type="submit">Suscribirme</button>
+            </div>
+            <p class="form-msg" id="email-msg" role="status" aria-live="polite"></p>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <a class="brand" href="#top" aria-label="tokatli tech, volver arriba">
+          <img src="assets/logo-isotype.svg" width="36" height="36" alt="">
+          <span class="wordmark">tokatli <span class="grad-text">tech</span></span>
+        </a>
+        <p>Entiende el futuro antes que llegue.</p>
+      </div>
+      <p class="keywords">Tecnología · Desarrollo · Inteligencia Artificial · Futuro</p>
+      <ul class="social">
+        <li><a href="#" aria-label="tokatli tech en YouTube"><svg class="icon" aria-hidden="true"><use href="#i-youtube"/></svg></a></li>
+        <li><a href="#" aria-label="tokatli tech en Instagram"><svg class="icon" aria-hidden="true"><use href="#i-instagram"/></svg></a></li>
+        <li><a href="#" aria-label="tokatli tech en LinkedIn"><svg class="icon" aria-hidden="true"><use href="#i-linkedin"/></svg></a></li>
+        <li><a href="#" aria-label="tokatli tech en X"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg></a></li>
+      </ul>
+    </div>
+    <div class="container copyright"><p>&copy; 2026 tokatli tech. Todos los derechos reservados.</p></div>
+  </footer>
+
+  <script src="js/main.js" defer></script>
+</body>
+</html>
