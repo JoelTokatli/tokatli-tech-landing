@@ -338,6 +338,22 @@ h3 { font-size: var(--fs-lg); font-weight: 600; }
 .card:hover { transform: translateY(-4px); border-color: var(--color-accent); }
 .card p { color: var(--color-text-muted); }
 .post .text-link { margin-top: auto; }
+/* Full-bleed illustration at the top of a post card; card padding is cancelled with negative margins */
+.post { overflow: hidden; }
+.post-media {
+  align-self: stretch;
+  width: calc(100% + 2 * var(--space-6));
+  max-width: none;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  object-position: 50% 45%;
+  margin: calc(-1 * var(--space-6)) calc(-1 * var(--space-6)) var(--space-2);
+  -webkit-mask-image: linear-gradient(180deg, black 72%, transparent);
+  mask-image: linear-gradient(180deg, black 72%, transparent);
+}
+
+@media (min-width: 560px) and (max-width: 1023px) { .post-media { aspect-ratio: 3 / 2; object-position: 50% 45%; } }
 
 /* Manifesto -------------------------------------------------------------- */
 .manifesto { display: grid; gap: var(--space-12); grid-template-columns: 1fr; align-items: center; }
