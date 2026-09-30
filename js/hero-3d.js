@@ -39,8 +39,9 @@ const QUALITY = {
   low: { ...LOW_GEOMETRY, dprCap: () => 1.25, fps: 30, partialFps: 15, maxDt: 0.1, motion: 1 },
   minimal: { ...LOW_GEOMETRY, dprCap: () => 1, fps: 20, partialFps: 10, maxDt: 0.1, motion: 0.35 },
 };
-// Software rasterizers and old mobile GPUs
-const WEAK_GPU = /swiftshader|llvmpipe|softpipe|software|microsoft basic|mali-(4|t[0-7])|adreno \(tm\) ?[2-4]\d\d|powervr (sgx|gx6)/i;
+// Real software rasterizers only (genuinely slow everywhere). Integrated GPUs (Intel UHD/Iris, Apple,
+// Vega...) are deliberately not listed: the measured step-down decides for those.
+const WEAK_GPU = /swiftshader|llvmpipe|softpipe|microsoft basic render/i;
 
 function forcedTier() {
   try {
@@ -51,13 +52,16 @@ function forcedTier() {
   }
 }
 
-// Cheap, synchronous signals only (no GL yet); the GPU hint is checked once the context exists
+// Phone-like = coarse pointer or narrow viewport. Desktops (fine pointer + wide viewport) always start
+// on `high`: deviceMemory / hardwareConcurrency are coarse, capped or spoofed (privacy modes) and say
+// nothing reliable about a desktop GPU. Only the measured step-down may lower a desktop, and only a
+// real software rasterizer (see gpuIsWeak) is trusted as a hint there.
+function isPhoneLike() {
+  return window.matchMedia('(pointer: coarse)').matches || window.innerWidth <= 767;
+}
+
 function initialTier() {
-  const coarse = window.matchMedia('(pointer: coarse)').matches;
-  const small = window.innerWidth <= 767;
-  const mem = navigator.deviceMemory;
-  const cores = navigator.hardwareConcurrency;
-  return coarse || small || (mem && mem <= 4) || (cores && cores <= 4) ? 'low' : 'high';
+  return isPhoneLike() ? 'low' : 'high';
 }
 
 function gpuIsWeak(gl) {
@@ -159,7 +163,18 @@ function setup(THREE, undo, isDisposed, cleanup) {
   if (!forced && tierName === 'high' && gpuIsWeak(renderer.getContext())) tierName = 'low';
   let q = QUALITY[tierName];
   // Adaptive step-down is skipped when a tier is forced for debugging
-  const adapt = { on: !forced, prev: 0, sum: 0, n: 0, skip: 12 };
+  // Step-down state machine, evaluated once per ~1 s window of rAF ticks:
+  //   bad window   = CPU cost per rendered frame > COST_MS, or ticks far slower than the refresh rate
+  //                  observed so far (a steady 30 Hz rAF is NOT slow; it is the display rate)
+  //   2 consecutive bad windows -> step down one tier, then ignore windows until `cool` elapses
+  //   10 consecutive healthy windows, or reaching `minimal` -> monitoring ends for good
+  const phoneLike = isPhoneLike();
+  const adapt = {
+    on: !forced, prev: 0, skip: 12, sum: 0, n: 0, cost: 0, costN: 0,
+    refresh: Infinity, bad: 0, good: 0, coolUntil: 0,
+    coolMs: phoneLike ? 3000 : 5000,
+  };
+  const COST_MS = 12;
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(34, 4 / 3, 0.1, 50);
@@ -378,11 +393,20 @@ function setup(THREE, undo, isDisposed, cleanup) {
 
     // ---- Floating particles + hexagon outlines ----
     const pCount = q.particles;
+    // Fixed seed: every tier rebuild regenerates the same sequence, so the surviving particles
+    // stay exactly where they were when stepping down
     const pPos = new Float32Array(pCount * 3);
+    let seed = 0x9e3779b9;
+    const rnd = () => {
+      seed = (seed + 0x6d2b79f5) | 0;
+      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
     for (let i = 0; i < pCount; i++) {
-      pPos[i * 3] = (Math.random() - 0.5) * 7;
-      pPos[i * 3 + 1] = (Math.random() - 0.5) * 5;
-      pPos[i * 3 + 2] = -1.5 + Math.random() * 3;
+      pPos[i * 3] = (rnd() - 0.5) * 7;
+      pPos[i * 3 + 1] = (rnd() - 0.5) * 5;
+      pPos[i * 3 + 2] = -1.5 + rnd() * 3;
     }
     const pGeo = track(new THREE.BufferGeometry());
     pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
@@ -517,24 +541,47 @@ function setup(THREE, undo, isDisposed, cleanup) {
   let lastRender = -1;
   let time = 0;
 
-  // Average rAF tick interval over ~1 s (ticks, not renders, so the fps cap does not skew it).
-  // Over ~24 ms means the device cannot hold ~40 fps: step down one tier. Stops after the first
-  // healthy window, so there is no oscillation and never a step back up.
+  const resetWindow = () => {
+    adapt.sum = adapt.n = adapt.cost = adapt.costN = 0;
+  };
+
+  // Primary signal is the CPU cost of a frame (scene update + render submit), which does not depend
+  // on the display refresh rate. The secondary signal is the rAF tick interval relative to the
+  // fastest interval seen so far, so a display/OS that runs rAF at 30 Hz (low-power mode, throttled
+  // windows) is never mistaken for a slow device; there is no absolute tick threshold.
   const monitor = (now) => {
     if (!adapt.on) return;
     if (adapt.prev) {
       const d = Math.min(now - adapt.prev, 100);
       if (adapt.skip > 0) adapt.skip--; // warm-up: shader compilation and first uploads
-      else { adapt.sum += d; adapt.n++; }
+      else {
+        adapt.sum += d;
+        adapt.n++;
+        if (d > 4 && d < adapt.refresh) adapt.refresh = d;
+      }
     }
     adapt.prev = now;
     if (adapt.sum < 1000) return;
-    const avg = adapt.sum / adapt.n;
-    adapt.sum = adapt.n = 0;
+
+    const tick = adapt.sum / adapt.n;
+    const cost = adapt.costN ? adapt.cost / adapt.costN : 0;
+    resetWindow();
+    if (now < adapt.coolUntil) return; // settling after a step-down: window does not count
+
+    const slow = cost > COST_MS || tick > Math.max(45, 1.5 * adapt.refresh);
+    if (!slow) {
+      adapt.bad = 0;
+      if (++adapt.good >= 10) adapt.on = false; // settled
+      return;
+    }
+    adapt.good = 0;
+    if (++adapt.bad < 2) return;
+    adapt.bad = 0;
+    if (!stepDown()) return void (adapt.on = false);
+    adapt.coolUntil = now + adapt.coolMs;
     adapt.skip = 12;
     adapt.prev = 0;
-    if (avg > 24 && stepDown()) return;
-    adapt.on = false;
+    if (tierName === 'minimal') adapt.on = false;
   };
 
   const frame = (now) => {
@@ -552,10 +599,15 @@ function setup(THREE, undo, isDisposed, cleanup) {
     cur.x += (target.x - cur.x) * 0.05;
     cur.y += (target.y - cur.y) * 0.05;
 
+    const t0 = performance.now();
     world.update(time, dt, cur);
 
     try {
       renderer.render(scene, camera);
+      if (adapt.on && adapt.skip === 0) {
+        adapt.cost += performance.now() - t0;
+        adapt.costN++;
+      }
     } catch (err) {
       console.warn('[hero-3d] render failed, falling back to static image', err);
       cleanup();
@@ -569,6 +621,8 @@ function setup(THREE, undo, isDisposed, cleanup) {
     if (shouldRun() && !raf) {
       lastRender = -1; // next frame renders immediately with dt = 0
       adapt.prev = 0;
+      adapt.skip = Math.max(adapt.skip, 6); // resume jank is not a quality signal
+      resetWindow();
       raf = requestAnimationFrame(frame);
     } else if (!shouldRun() && raf) {
       cancelAnimationFrame(raf);
@@ -583,10 +637,13 @@ function setup(THREE, undo, isDisposed, cleanup) {
   const io = new IntersectionObserver((entries) => {
     const e = entries[entries.length - 1];
     onScreen = e.isIntersecting;
-    const vh = e.rootBounds ? Math.min(e.boundingClientRect.height, e.rootBounds.height) : 0;
+    // Visible pixels relative to what could be visible: a hero taller than the viewport can never
+    // exceed viewport/height of its own area, so compare against min(host height, viewport height)
+    const vpH = e.rootBounds ? e.rootBounds.height : window.innerHeight;
+    const vh = Math.min(e.boundingClientRect.height, vpH);
     partial = onScreen && vh > 0 && e.intersectionRect.height / vh < 0.25;
     sync();
-  }, { threshold: [0, 0.25] });
+  }, { threshold: Array.from({ length: 21 }, (_, i) => i / 20) });
   io.observe(host);
   undo.push(() => io.disconnect());
   document.addEventListener('visibilitychange', sync);
