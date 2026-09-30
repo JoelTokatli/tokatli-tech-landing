@@ -277,6 +277,18 @@ h3 { font-size: var(--fs-lg); font-weight: 600; }
   mask-image: radial-gradient(ellipse closest-side at 50% 50%, #000 55%, transparent 100%);
 }
 .hero-visual img { width: 100%; height: auto; aspect-ratio: 1448 / 1086; animation: hero-float 8s ease-in-out infinite; }
+/* 3D scene (js/hero-3d.js): canvas fades in over the poster, which stays in flow (no layout shift) */
+.hero-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 400ms ease;
+}
+.hero-visual.is-3d .hero-canvas { opacity: 1; }
+.hero-visual.is-3d img { opacity: 0; animation: none; transition: opacity 400ms ease 400ms; }
 @keyframes hero-float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-8px); }

@@ -33,6 +33,10 @@ The form has no backend. Set your provider endpoint in `index.html`:
 
 `js/main.js` POSTs `{ "email": "..." }` as JSON to that URL. While `data-action` is empty, only the success state is shown locally.
 
+## 3D hero
+
+`js/hero-3d.js` (ES module) renders the brand "T" with orbiting electrons using Three.js `0.160.0`, lazy-loaded from jsDelivr (`https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js`) only after `load` + idle. The static hero `<img>` remains the poster/LCP element and the fallback: no canvas is created with `prefers-reduced-motion`, `saveData`, or no WebGL, and the canvas is removed on errors or WebGL context loss. Rendering pauses when the hero is off-screen or the tab is hidden. Colors are read from the CSS custom properties in `:root`.
+
 ## Notes
 
 - Design tokens (colors, spacing, type, radius, elevation) live as CSS custom properties in `:root` in `css/styles.css`.
